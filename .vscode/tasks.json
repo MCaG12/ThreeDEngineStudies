@@ -1,0 +1,39 @@
+{
+"version": "2.0.0",
+"tasks": [
+{
+"label": "Build C++ Project",
+"type": "shell",
+"command": "C:/msys64/mingw64/bin/g++.exe",
+"args": [
+"-std=c++17",
+"-Wall",
+"-Wextra",
+"-g",
+"${workspaceFolder}/main.cpp",
+"${workspaceFolder}/vector3d.h",
+"${workspaceFolder}/mesh.h",
+"${workspaceFolder}/matrix.h",
+"-o",
+"${workspaceFolder}/ThreeDEngineStudies.exe"
+],
+"group": {
+"kind": "build",
+"isDefault": true
+},
+"problemMatcher": ["$gcc"]
+},
+{
+"label": "Clean Main",
+"type": "shell",
+"command": "C:/msys64/usr/bin/bash.exe",
+"args": [
+"--login",
+"-c",
+"rm -f /c/Users/Chine/Desktop/ThreeDEngineStudies/ThreeDEngineStudies.exe"
+],
+"group": "build",
+"problemMatcher": []
+}
+]
+}
