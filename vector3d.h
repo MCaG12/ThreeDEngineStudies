@@ -148,9 +148,9 @@ template<class type>
 type 
 Vector3d<type>::getDotProduct(const Vector3d<type>& otherVector)
 {
-    return  ( ((*this)->Vec[0] * otherVector.Vec[0])   + 
-              ((*this)->Vec[1] * otherVector.Vec[1])   + 
-              ((*this)->Vec[2] * otherVector.Vec[2]) );
+    return  ( (this->Vec[0] * otherVector.Vec[0])   + 
+              (this->Vec[1] * otherVector.Vec[1])   + 
+              (this->Vec[2] * otherVector.Vec[2]) );
 }
 
 template<class type>
@@ -178,7 +178,7 @@ Vector3d<type>::normalizeVector(void)
     type Length = this->getLength();
     for(int i = 0; i < 3; i++)
     {
-        (*this)->Vec[i] /= Length;
+        this->Vec[i] /= Length;
     } 
     return (*this);
 }
@@ -199,3 +199,4 @@ Vector3d<type>::getVectorIndex(int Index) const
 {
     return Vec[Index];
 }
+

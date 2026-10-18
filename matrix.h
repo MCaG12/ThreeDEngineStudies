@@ -39,6 +39,8 @@ public:
 
     Vector3d<double> MovePoint(const Vector3d<double>& v) const;
 
+    Matrix<MatrixType, 4, 4> GetFourByFourMatrixMultiplication(const Matrix<MatrixType, 4, 4> &OtherMatrix);
+
 
 
 };
@@ -120,14 +122,14 @@ Matrix<MatrixType, MatrixColumns, MatrixRows> &Matrix<MatrixType, MatrixColumns,
             this->MatrixArray[i][j]*=Matrix2.MatrixArray[i][j];
         }
     }
-    return (*this).MatrixArray;
+    return (*this);
 }
 
 
 template<class MatrixType, int MatrixColumns, int MatrixRows>
 Matrix<MatrixType, MatrixColumns, MatrixRows> Matrix<MatrixType, MatrixColumns, MatrixRows>::operator*(Matrix<MatrixType, MatrixColumns, MatrixRows> &Matrix2)
 {
-    return Matrix<MatrixType, MatrixColumns, MatrixRows> (*this).MatrixArray*=Matrix2;
+    return Matrix<MatrixType, MatrixColumns, MatrixRows> (*this) *= Matrix2;
 }
 
 template<class MatrixType, int MatrixColumns, int MatrixRows>
@@ -217,5 +219,26 @@ Matrix<MatrixType, MatrixColumns, MatrixRows>::MovePoint(const Vector3d<double>&
     Vector3d<double> Result( (resultX/resultW), (resultY/resultW), (resultZ/resultW) );
 
     return Result;
+}
 
+template<class MatrixType, int MatrixColumns, int MatrixRows>
+Matrix<MatrixType, 4, 4> 
+Matrix<MatrixType, MatrixColumns, MatrixRows>::GetFourByFourMatrixMultiplication(const Matrix<MatrixType, 4, 4> &OtherMatrix)
+{
+    
+    Matrix<MatrixType, 4, 4>  Result(0);
+    for(int y = 0; y < 4; y++)
+    {
+        for(int x = 0; x < 4; x++)
+        {
+            MatrixType Sum = {};
+            for( int aux = 0; aux < 4; aux++)
+            {
+                Sum += (this->MatrixArray[aux][x] * OtherMatrix.MatrixArray[aux][y]);
+                
+            }
+            Result.MatrixArray[y][x] = Sum;        
+        }
+    }
+    return Result;
 }

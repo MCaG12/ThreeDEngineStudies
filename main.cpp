@@ -7,21 +7,25 @@
  
 int main()
 {
-    Vector3d<double> startPositionTest(1,1,1);
+    Vector3d<double> startPositionTest(0.1,0.1,5);
     Camera cam(800, 600, 90.0, startPositionTest);
 
-    Matrix<float, 4, 4> TransformationMatrix = cam.getProjectionMatrix();
+    Matrix<double, 4, 4> TransformationMatrix = cam.getProjectionMatrix();
+    Matrix<double, 4, 4> ViewMatrix = cam.getViewMatrix();
 
-        std::cout<<"0:0 "<<TransformationMatrix.MatrixArray[0][0]<<" 1:1"<<TransformationMatrix.MatrixArray[1][1]<<" 2:2"<<TransformationMatrix.MatrixArray[2][2]
-    <<" 2:3"<<TransformationMatrix.MatrixArray[2][3];
+    Vector3d<double> TransformedPosition = TransformationMatrix.MovePoint({0.1, 0.1, 0.1});
+    Vector3d<double> ViewPosition = ViewMatrix.MovePoint({0.1, 0.1, 0.1});
 
-    Vector3d<double> testPoint(0, 0, 5);
-    Vector3d<double> result = TransformationMatrix.MovePoint(testPoint);
+    Vector3d<double> Test(0.1,0.1,5);
 
-    std::cout<<" Result Stuff \n";
-    for(int i = 0; i < 3 ; i++)
+    Matrix<double,4,4> viewProj = TransformationMatrix.GetFourByFourMatrixMultiplication(ViewMatrix);
+
+    Vector3d<double> clip = viewProj.MovePoint(Test);
+
+    std::cout<<"printing all the viewProj stuff now\n";
+    for(int i = 0; i < 3; i++)
     {
-        std::cout<<result.getVectorIndex(i)<<" ";
+        std::cout<<clip.getVectorIndex(i)<<"\n";       
     }
 
     return 0;

@@ -22,9 +22,13 @@ class Camera
         double getCameraAspectRatio(void);
         Vector3d<double> getCameraPosition(void);
 
+        Vector3d<double> getFowardVector(void);
+        Vector3d<double> getRightVector(void);
+
         double getFovRad(void);
 
-        Matrix<float, 4, 4> getProjectionMatrix(void);
+        Matrix<double, 4, 4> getProjectionMatrix(void);
+        Matrix<double, 4, 4> getViewMatrix(void);
 
         
 };
@@ -70,11 +74,37 @@ Camera::getCameraPosition(void)
     return this->cameraPosition;
 }
 
-Matrix<float, 4, 4> 
+Vector3d<double> 
+Camera::getFowardVector(void)
+{
+    double yawRad = (this->yaw * PI) / 180;
+    double pitchRad = (this->pitch * PI) / 180;
+
+    double x = cos(yawRad) * cos(pitchRad);
+    double y = sin(pitchRad);
+    double z = sin(yawRad) * cos(pitchRad);
+    Vector3d<double> result(x,y,z);
+
+    return result;
+}
+
+Vector3d<double>
+Camera::getRightVector(void)
+{
+    Vector3d<double> UpVector(0,1,0);
+
+    Vector3d<double> FowardVector = this->getFowardVector();
+    Vector3d<double> RightVector = FowardVector.crossProduct(UpVector);
+
+    return RightVector.normalizeVector();
+    
+}
+
+Matrix<double, 4, 4> 
 Camera::getProjectionMatrix(void)
 {
     double scalingFactor  = ( 1 / tan(this->getFovRad() /2.0 ) );
-    Matrix<float, 4,4> projectionMatrix (0);
+    Matrix<double, 4,4> projectionMatrix (0);
 
     projectionMatrix.MatrixArray[0][0] = scalingFactor / (this)->aspectRatio;
     projectionMatrix.MatrixArray[1][1] = scalingFactor;
@@ -83,4 +113,34 @@ Camera::getProjectionMatrix(void)
     projectionMatrix.MatrixArray[2][3] = (2 * this->farPlane * this->nearPlane)/(this->nearPlane - this->farPlane);
 
     return projectionMatrix;
+}
+
+Matrix<double,4,4>
+Camera::getViewMatrix(void)
+{
+    Vector3d<double> foward = this->getFowardVector();
+    Vector3d<double> right = this->getRightVector();
+    Vector3d<double> up(0,1,0);
+    Vector3d<double> pos = this->cameraPosition;
+
+    Matrix<double, 4, 4> viewMatrix(0);
+
+    viewMatrix.MatrixArray[0][0] = right.getVectorIndex(0);  
+    viewMatrix.MatrixArray[0][1] = right.getVectorIndex(1); 
+    viewMatrix.MatrixArray[0][2] = right.getVectorIndex(2); 
+
+    viewMatrix.MatrixArray[1][0] =    up.getVectorIndex(0);   
+    viewMatrix.MatrixArray[1][1] =    up.getVectorIndex(1);   
+    viewMatrix.MatrixArray[1][2] =    up.getVectorIndex(2); 
+
+    viewMatrix.MatrixArray[2][0] = -(foward.getVectorIndex(0)); 
+    viewMatrix.MatrixArray[2][1] = -(foward.getVectorIndex(1)); 
+    viewMatrix.MatrixArray[2][2] = -(foward.getVectorIndex(2)); 
+    
+    viewMatrix.MatrixArray[0][3] = -(right.getDotProduct(pos));        
+    viewMatrix.MatrixArray[1][3] = -(up.getDotProduct(pos));        
+    viewMatrix.MatrixArray[2][3] = -(foward.getDotProduct(pos));
+    viewMatrix.MatrixArray[3][3] = 1;
+
+    return viewMatrix;
 }
