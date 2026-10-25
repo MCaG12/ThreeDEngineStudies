@@ -14,6 +14,9 @@
 "${workspaceFolder}/vector3d.h",
 "${workspaceFolder}/mesh.h",
 "${workspaceFolder}/matrix.h",
+"${workspaceFolder}/transform.h",
+"${workspaceFolder}/display.h",
+"${workspaceFolder}/display.cpp",
 "-o",
 "${workspaceFolder}/ThreeDEngineStudies.exe"
 ],

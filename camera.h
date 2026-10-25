@@ -139,7 +139,7 @@ Camera::getViewMatrix(void)
     
     viewMatrix.MatrixArray[0][3] = -(right.getDotProduct(pos));        
     viewMatrix.MatrixArray[1][3] = -(up.getDotProduct(pos));        
-    viewMatrix.MatrixArray[2][3] = -(foward.getDotProduct(pos));
+    viewMatrix.MatrixArray[2][3] = foward.getDotProduct(pos);
     viewMatrix.MatrixArray[3][3] = 1;
 
     return viewMatrix;

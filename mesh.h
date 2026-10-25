@@ -16,13 +16,13 @@ class Mesh
         std::vector<Triangle> mesh_triangles;
 
     public:
-        const std::vector<Vector3d<double>>& getVertices() const;
+        const std::vector<Vector3d<double>>& getVertices();
         const std::vector<Triangle>& getTriangles() const;
 
         void makeDebugCube();
 };
 
-inline const std::vector<Vector3d<double>>& Mesh::getVertices() const
+inline const std::vector<Vector3d<double>>& Mesh::getVertices() 
 {
     return this->mesh_vertices;
 }

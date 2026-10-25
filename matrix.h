@@ -234,7 +234,7 @@ Matrix<MatrixType, MatrixColumns, MatrixRows>::GetFourByFourMatrixMultiplication
             MatrixType Sum = {};
             for( int aux = 0; aux < 4; aux++)
             {
-                Sum += (this->MatrixArray[aux][x] * OtherMatrix.MatrixArray[aux][y]);
+                Sum += (this->MatrixArray[y][aux] * OtherMatrix.MatrixArray[aux][x]);
                 
             }
             Result.MatrixArray[y][x] = Sum;        
