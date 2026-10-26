@@ -36,6 +36,7 @@ class Vector3d
         type getManhattanDistance(const Vector3d<type>& otherVector );
 
         type getVectorIndex(int Index) const;
+        void setVectorIndex(int Index, int newVal);
 };
 
 template<class type>
@@ -199,4 +200,9 @@ Vector3d<type>::getVectorIndex(int Index) const
 {
     return Vec[Index];
 }
-
+template<class type>
+void 
+Vector3d<type>::setVectorIndex(int Index, int newVal)
+{
+    this->Vec[Index] = newVal;
+}

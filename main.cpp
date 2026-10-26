@@ -3,10 +3,12 @@
 #include "Vector3d.h"  
 #include "matrix.h"
 #include "camera.h"
-#include "transform.h"
 #include "mesh.h"
+
 #include "display.h"
 #include <windows.h>
+#include "transform.h"
+#define KEY_DOWN(k) (GetAsyncKeyState(k))
 
 const int width = 900;
 const int height = 900;
@@ -17,6 +19,7 @@ MONITORINFO G_MonitorInfo;
 LONG G_MonitorWidth = 0;
 LONG G_MonitorHeight = 0;
 
+Transform transformMatrix;
 
 typedef struct SCENE_BIT_MAP
 {
@@ -25,6 +28,89 @@ typedef struct SCENE_BIT_MAP
 } SCENE_BIT_MAP;
 
 SCENE_BIT_MAP g_backbuffer;
+
+void handleInput(void)
+{
+    bool EscKeyIsDown     = KEY_DOWN(VK_ESCAPE);
+
+    bool UpKeyIsDown      = KEY_DOWN(VK_SPACE);
+    bool DownKeyIsDown    = KEY_DOWN(VK_SHIFT);
+
+    bool FowardKeyIsDown  = KEY_DOWN('W');
+    bool BackKeyIsDown    = KEY_DOWN('S');
+
+    bool RightKeyIsDown   = KEY_DOWN('D');
+    bool LeftKeyIsDown    = KEY_DOWN('A');
+
+    bool RotateRight      = KEY_DOWN('R');
+    bool RotateLeft       = KEY_DOWN('E');
+
+    if(EscKeyIsDown)
+    {
+        SendMessageA(g_window_handle, WM_CLOSE, 0, 0);
+    }
+
+
+    if(FowardKeyIsDown) 
+    {
+        transformMatrix.position.setVectorIndex(2, transformMatrix.position.getVectorIndex(2) + 1);
+    }
+
+    if(BackKeyIsDown) 
+    {
+        transformMatrix.position.setVectorIndex(2, transformMatrix.position.getVectorIndex(2) - 1);
+    }
+
+
+    if(RightKeyIsDown) 
+    {
+        transformMatrix.position.setVectorIndex(0, transformMatrix.position.getVectorIndex(0) + 1);
+    }
+
+    if(LeftKeyIsDown) 
+    {
+        transformMatrix.position.setVectorIndex(0, transformMatrix.position.getVectorIndex(0) - 1);
+    }
+
+    if(UpKeyIsDown) 
+    {
+        transformMatrix.position.setVectorIndex(1, transformMatrix.position.getVectorIndex(1) - 1);
+    }
+
+    if(DownKeyIsDown) 
+    {
+        transformMatrix.position.setVectorIndex(1, transformMatrix.position.getVectorIndex(1) + 1);
+    }
+
+    if(RotateRight) 
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            transformMatrix.rotation.setVectorIndex(i, transformMatrix.rotation.getVectorIndex(i) + 1);
+        }
+    }
+
+    if(RotateLeft) 
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            transformMatrix.rotation.setVectorIndex(i, transformMatrix.rotation.getVectorIndex(i) - 1);
+        }
+    }
+}
+
+void paintBitMap(display *DisplayObject)
+{
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            const Pixel& currentPixel = DisplayObject->pixelMap[y][x];
+            memcpy_s((Pixel*)g_backbuffer.memory_canvas + (width * y) + x, sizeof(currentPixel), &currentPixel, sizeof(Pixel));
+
+        }
+    }
+}
 
 int DrawScene()
 {
@@ -35,12 +121,7 @@ int DrawScene()
 
     Camera camera(width, height, 90, origin);
 
-    Transform t;
-    t.position = Vector3d<double>(0, 0, -3);
-    t.rotation = Vector3d<double>(1, 1, 1);   // 90 degrees of yaw
-    t.scale    = Vector3d<double>(1, 1, 1);
-
-    Matrix<double,4,4> model = t.getModelMatrix();
+    Matrix<double,4,4> model = transformMatrix.getModelMatrix();
     Matrix<double,4,4> view = camera.getViewMatrix();
     Matrix<double,4,4> proj = camera.getProjectionMatrix();
 
@@ -85,18 +166,21 @@ int DrawScene()
         DisplayObject.drawLine(pointOne.first, pointOne.second, pointTwo.first, pointTwo.second);    
     }
 
-    //DisplayObject.savePPMformat();
+    paintBitMap(&DisplayObject);
     StretchDIBits(DeviceContext, 0, 0, G_MonitorWidth, G_MonitorHeight, 0, 0, width, height, g_backbuffer.memory_canvas, &g_backbuffer.BitMapInfo, DIB_RGB_COLORS, SRCCOPY);
 
-
     return 0;
-
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    transformMatrix.position = Vector3d<double>(0, 0, -5);
+    transformMatrix.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
+    transformMatrix.scale    = Vector3d<double>(1, 1, 1);
+
+
     (void)hPrevInstance;
     (void)lpCmdLine;
     const char CLASS_NAME[] = "RendererWindow";
@@ -171,6 +255,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         if (!running) break;
 
         //processInput();
+        handleInput();
         DrawScene();
     }
 
