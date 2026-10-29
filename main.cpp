@@ -8,6 +8,8 @@
 #include "display.h"
 #include <windows.h>
 #include "transform.h"
+#include "utils.h"
+
 #define KEY_DOWN(k) (GetAsyncKeyState(k))
 
 const int width = 900;
@@ -138,14 +140,7 @@ int DrawScene()
         Vector3d<double> newVertex = newPerspecitve.MovePoint(vertices[i]);
         double screenX = (newVertex.getVectorIndex(0) + 1) * 0.5 * width;
         double screenY = (newVertex.getVectorIndex(1) + 1) * 0.5 * height;
-        std::cout << "matrix info was "
-                << newVertex.getVectorIndex(0) << " " 
-                << newVertex.getVectorIndex(1) << " " 
-                << newVertex.getVectorIndex(2) << "\n";
 
-        std::cout << "X is "
-                << screenX << " Y is " 
-                << screenY <<  "\n";
         std::pair<double, double> currentXY = {screenX, screenY};
         Pairs.push_back(currentXY);
     }

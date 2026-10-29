@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3d.h"  
+#include "Vector4d.h"
 
 template<class MatrixType,  int MatrixColumns, int MatrixRows>
 class Matrix {
@@ -40,6 +41,7 @@ public:
     Vector3d<double> MovePoint(const Vector3d<double>& v) const;
 
     Matrix<MatrixType, 4, 4> GetFourByFourMatrixMultiplication(const Matrix<MatrixType, 4, 4> &OtherMatrix);
+    Vector4d getVector4d(const Vector3d<double>& v);
 
 
 
@@ -240,5 +242,22 @@ Matrix<MatrixType, MatrixColumns, MatrixRows>::GetFourByFourMatrixMultiplication
             Result.MatrixArray[y][x] = Sum;        
         }
     }
+    return Result;
+}
+
+template<class MatrixType, int MatrixColumns, int MatrixRows>
+Vector4d 
+Matrix<MatrixType, MatrixColumns, MatrixRows>::getVector4d(const Vector3d<double>& v)
+{
+    double resultX = ((*this).MatrixArray[0][0] * v.getVectorIndex(0)) + ((*this).MatrixArray[0][1] * v.getVectorIndex(1)) + ((*this).MatrixArray[0][2] * v.getVectorIndex(2)) + ((*this).MatrixArray[0][3]*1);
+    double resultY = ((*this).MatrixArray[1][0] * v.getVectorIndex(0)) + ((*this).MatrixArray[1][1] * v.getVectorIndex(1)) + ((*this).MatrixArray[1][2] * v.getVectorIndex(2)) + ((*this).MatrixArray[1][3]*1);
+    double resultZ = ((*this).MatrixArray[2][0] * v.getVectorIndex(0)) + ((*this).MatrixArray[2][1] * v.getVectorIndex(1)) + ((*this).MatrixArray[2][2] * v.getVectorIndex(2)) + ((*this).MatrixArray[2][3]*1);
+    double resultW = ((*this).MatrixArray[3][0] * v.getVectorIndex(0)) + ((*this).MatrixArray[3][1] * v.getVectorIndex(1)) + ((*this).MatrixArray[3][2] * v.getVectorIndex(2)) + ((*this).MatrixArray[3][3]*1);
+    Vector4d Result;
+    Result.x = resultX;
+    Result.y = resultY;
+    Result.z = resultZ;
+    Result.w = resultW;
+
     return Result;
 }
