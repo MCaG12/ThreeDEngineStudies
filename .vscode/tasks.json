@@ -12,6 +12,7 @@
                 "-g",
                 "${workspaceFolder}/main.cpp",
                 "${workspaceFolder}/display.cpp",
+                "${workspaceFolder}/utils.cpp",
                 "-mwindows",
                 "-o",
                 "${workspaceFolder}/ThreeDEngineStudies.exe"

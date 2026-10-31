@@ -133,37 +133,56 @@ int DrawScene()
     Object.makeDebugCube();
     
     const std::vector<Vector3d<double>>& vertices = Object.getVertices();
-    std::vector<std::pair<double,double>> Pairs;
+    std::vector<Vector4d> Pairs;
 
     for (size_t  i = 0; i < vertices.size(); i++)
     {
-        Vector3d<double> newVertex = newPerspecitve.MovePoint(vertices[i]);
-        double screenX = (newVertex.getVectorIndex(0) + 1) * 0.5 * width;
-        double screenY = (newVertex.getVectorIndex(1) + 1) * 0.5 * height;
+        Vector4d current = newPerspecitve.getVector4d(vertices[i]);
 
-        std::pair<double, double> currentXY = {screenX, screenY};
-        Pairs.push_back(currentXY);
+        Pairs.push_back(current);
+        // Vector3d<double> newVertex = newPerspecitve.MovePoint(vertices[i]);
+        // double screenX = (newVertex.getVectorIndex(0) + 1) * 0.5 * width;
+        // double screenY = (newVertex.getVectorIndex(1) + 1) * 0.5 * height;
+
+        // std::pair<double, double> currentXY = {screenX, screenY};
+        // Pairs.push_back(currentXY);
     }
 
     display DisplayObject(height, width);
+    Utils UsefulFunctions;
 
-    int edges[12][2] = {
-        {0,1},{1,2},{2,3},{3,0},
-        {4,5},{5,6},{6,7},{7,4},
-        {0,4},{1,5},{2,6},{3,7}
+    int edges[12][3] = {
+        {3,2,6}, {3,6,7},    // front  (z = +1)
+        {0,4,5}, {0,5,1},    // back   (z = -1)
+        {1,5,6}, {1,6,2},    // right  (x = +1)
+        {0,3,7}, {0,7,4},    // left   (x = -1)
+        {4,7,6}, {4,6,5},    // top    (y = +1)
+        {0,1,2}, {0,2,3}     // bottom (y = -1)
     };
 
     for(int i = 0; i < 12; i++)
     {
-        std::pair<double,double> pointOne = Pairs[edges[i][0]];
-        std::pair<double,double> pointTwo = Pairs[edges[i][1]];
+        Vector4d pointOne = Pairs[edges[i][0]];
+        Vector4d pointTwo = Pairs[edges[i][1]];
+        Vector4d pointThree = Pairs[edges[i][2]];
 
-        DisplayObject.drawLine(pointOne.first, pointOne.second, pointTwo.first, pointTwo.second);    
+    
+        if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
+        if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
+
+        std::pair<double,double> ScreenPointOne = UsefulFunctions.putToScreen(&pointOne, width, height);
+        std::pair<double,double> ScreenPointTwo = UsefulFunctions.putToScreen(&pointTwo, width, height);
+        std::pair<double,double> ScreenPointThree = UsefulFunctions.putToScreen(&pointThree, width, height);
+
+        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
+        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
+        DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
     }
 
     paintBitMap(&DisplayObject);
     StretchDIBits(DeviceContext, 0, 0, G_MonitorWidth, G_MonitorHeight, 0, 0, width, height, g_backbuffer.memory_canvas, &g_backbuffer.BitMapInfo, DIB_RGB_COLORS, SRCCOPY);
 
+    ReleaseDC(g_window_handle, DeviceContext);
     return 0;
 }
 
