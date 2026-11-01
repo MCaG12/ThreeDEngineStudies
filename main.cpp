@@ -160,6 +160,34 @@ int DrawScene()
         {0,1,2}, {0,2,3}     // bottom (y = -1)
     };
 
+    Pixel Red    (255,0,0);
+    Pixel Blue   (0,0,255);
+    Pixel Green  (0,255,0);
+    Pixel Purple (255,0,255);
+    Pixel Yellow (255,255,0);
+    Pixel Cyan   (0,255,255);
+    Pixel Salmon      (250, 128, 114);
+    Pixel Brown       (139, 69, 19);
+    Pixel Chocolate   (210, 105, 30);
+    Pixel Indigo      (75, 0, 130);
+    Pixel Violet      (138, 43, 226);
+    Pixel Navy        (0, 0, 128);
+
+    std::vector<Pixel>  PlaneColors;
+
+    PlaneColors.push_back(Red);
+    PlaneColors.push_back(Blue);
+    PlaneColors.push_back(Green);
+    PlaneColors.push_back(Purple);
+    PlaneColors.push_back(Yellow);
+    PlaneColors.push_back(Cyan);
+    PlaneColors.push_back(Salmon);
+    PlaneColors.push_back(Brown);
+    PlaneColors.push_back(Chocolate);
+    PlaneColors.push_back(Indigo);
+    PlaneColors.push_back(Violet);
+    PlaneColors.push_back(Navy);
+
     for(int i = 0; i < 12; i++)
     {
         Vector4d pointOne = Pairs[edges[i][0]];
@@ -177,6 +205,15 @@ int DrawScene()
         DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
         DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
         DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
+
+        Pixel Painted = PlaneColors[i];
+
+        Utils::paintPixel(ScreenPointOne.first, ScreenPointOne.second, 
+                   ScreenPointTwo.first, ScreenPointTwo.second,
+                   ScreenPointThree.first, ScreenPointThree.second,
+                   Painted, &DisplayObject.pixelMap,
+                   width, height
+                );
     }
 
     paintBitMap(&DisplayObject);

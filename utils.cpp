@@ -77,3 +77,47 @@ Utils::backFaceCullingCheck(Vector4d *PointA, Vector4d *PointB, Vector4d *PointC
 
     return false;
 }
+
+double Utils::paintPixelCheck(double x0, double y0, double x1, double y1, double x2, double y2)
+{
+    return (x1 - x0) * (y2 - y0) - (x2- x0) * (y1 - y0);
+}
+
+void 
+Utils::paintPixel(double x0, double y0, double x1, double y1, double x2, double y2, Pixel pixelColor, std::vector<std::vector<Pixel>> *pixelMap, int width, int height)
+{
+    double area = paintPixelCheck(x0, y0, x1,  y1,  x2,  y2);
+    if(area == 0) { return; }
+
+    //fetching the clipping rectangles extremes
+
+    int LeftMostX  = std::min({x0, x1, x2});
+    int RightMostX = std::max({x0, x1, x2});
+
+    int BottomMostY = std::min({y0, y1, y2});
+    int TopMostY    = std::max({y0, y1, y2});
+
+    if(LeftMostX < 0) LeftMostX = 0;
+    if(RightMostX > width) RightMostX = width - 1;
+
+    if(BottomMostY < 0) BottomMostY = 0;
+    if(TopMostY > height) TopMostY = height - 1;
+
+    for(int y = BottomMostY; y < TopMostY; y++)
+    {
+        for (int x = LeftMostX; x < RightMostX; x++)
+        {
+            double px = x + 0.5;
+            double py = y + 0.5;
+
+            double wA = paintPixelCheck(x1, y1, x2, y2, px, py);
+            double wB = paintPixelCheck(x2, y2, x0, y0, px, py);
+            double wC = paintPixelCheck(x0, y0, x1, y1, px, py);
+
+            bool isPixelInside = (area > 0) ? (wA >= 0 && wB >= 0 && wC >= 0) : (wA <= 0 && wB <= 0 && wC <= 0);
+
+            if(isPixelInside) { (*pixelMap)[y][x] = pixelColor;}
+         
+        }
+    }
+}
