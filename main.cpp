@@ -22,6 +22,7 @@ LONG G_MonitorWidth = 0;
 LONG G_MonitorHeight = 0;
 
 Transform transformMatrix;
+Transform transformMatrix2;
 
 typedef struct SCENE_BIT_MAP
 {
@@ -127,13 +128,19 @@ int DrawScene()
     Matrix<double,4,4> view = camera.getViewMatrix();
     Matrix<double,4,4> proj = camera.getProjectionMatrix();
 
+    Matrix<double,4,4> model2 = transformMatrix2.getModelMatrix();
+    Matrix<double,4,4> view2 = camera.getViewMatrix();
+    Matrix<double,4,4> proj2 = camera.getProjectionMatrix();
+
     Matrix<double,4,4> newPerspecitve = proj.GetFourByFourMatrixMultiplication(view).GetFourByFourMatrixMultiplication(model);
+    Matrix<double,4,4> newPerspecitve2 = proj2.GetFourByFourMatrixMultiplication(view2).GetFourByFourMatrixMultiplication(model2);
 
     Mesh Object;
     Object.makeDebugCube();
     
     const std::vector<Vector3d<double>>& vertices = Object.getVertices();
     std::vector<Vector4d> Pairs;
+    std::vector<Vector4d> Pairs2;
 
     for (size_t  i = 0; i < vertices.size(); i++)
     {
@@ -147,6 +154,20 @@ int DrawScene()
         // std::pair<double, double> currentXY = {screenX, screenY};
         // Pairs.push_back(currentXY);
     }
+
+    for (size_t  i = 0; i < vertices.size(); i++)
+    {
+        Vector4d current = newPerspecitve2.getVector4d(vertices[i]);
+
+        Pairs2.push_back(current);
+        // Vector3d<double> newVertex = newPerspecitve.MovePoint(vertices[i]);
+        // double screenX = (newVertex.getVectorIndex(0) + 1) * 0.5 * width;
+        // double screenY = (newVertex.getVectorIndex(1) + 1) * 0.5 * height;
+
+        // std::pair<double, double> currentXY = {screenX, screenY};
+        // Pairs.push_back(currentXY);
+    }
+
 
     display DisplayObject(height, width);
     Utils UsefulFunctions;
@@ -188,6 +209,21 @@ int DrawScene()
     PlaneColors.push_back(Violet);
     PlaneColors.push_back(Navy);
 
+    std::vector<Pixel>  PlaneColors2;
+
+    PlaneColors2.push_back(Red);
+    PlaneColors2.push_back(Indigo);
+    PlaneColors2.push_back(Yellow);
+    PlaneColors2.push_back(Cyan);
+    PlaneColors2.push_back(Brown);
+    PlaneColors2.push_back(Purple);
+    PlaneColors2.push_back(Navy);
+    PlaneColors2.push_back(Salmon);
+    PlaneColors2.push_back(Green);
+    PlaneColors2.push_back(Violet);
+    PlaneColors2.push_back(Chocolate);
+    PlaneColors2.push_back(Blue);
+
     for(int i = 0; i < 12; i++)
     {
         Vector4d pointOne = Pairs[edges[i][0]];
@@ -208,11 +244,39 @@ int DrawScene()
 
         Pixel Painted = PlaneColors[i];
 
-        Utils::paintPixel(ScreenPointOne.first, ScreenPointOne.second, 
-                   ScreenPointTwo.first, ScreenPointTwo.second,
-                   ScreenPointThree.first, ScreenPointThree.second,
-                   Painted, &DisplayObject.pixelMap,
-                   width, height
+        DisplayObject.paintPixel
+                (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
+                   ScreenPointTwo.first, ScreenPointTwo.second, (pointTwo.z / pointTwo.w),
+                   ScreenPointThree.first, ScreenPointThree.second, (pointThree.z / pointThree.w),
+                   Painted
+                );
+    }
+    
+    for(int i = 0; i < 12; i++)
+    {
+        Vector4d pointOne = Pairs2[edges[i][0]];
+        Vector4d pointTwo = Pairs2[edges[i][1]];
+        Vector4d pointThree = Pairs2[edges[i][2]];
+
+    
+        if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
+        if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
+
+        std::pair<double,double> ScreenPointOne = UsefulFunctions.putToScreen(&pointOne, width, height);
+        std::pair<double,double> ScreenPointTwo = UsefulFunctions.putToScreen(&pointTwo, width, height);
+        std::pair<double,double> ScreenPointThree = UsefulFunctions.putToScreen(&pointThree, width, height);
+
+        //DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
+       // DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
+        //DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
+
+        Pixel Painted = PlaneColors2[i];
+
+        DisplayObject.paintPixel
+                (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
+                   ScreenPointTwo.first, ScreenPointTwo.second, (pointTwo.z / pointTwo.w),
+                   ScreenPointThree.first, ScreenPointThree.second, (pointThree.z / pointThree.w),
+                   Painted
                 );
     }
 
@@ -230,6 +294,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     transformMatrix.position = Vector3d<double>(0, 0, -5);
     transformMatrix.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
     transformMatrix.scale    = Vector3d<double>(1, 1, 1);
+
+    transformMatrix2.position = Vector3d<double>(1, 1, -5);
+    transformMatrix2.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
+    transformMatrix2.scale    = Vector3d<double>(1, 1, 1);
 
 
     (void)hPrevInstance;
