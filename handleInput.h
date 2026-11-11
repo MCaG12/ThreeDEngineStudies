@@ -1,1 +1,3 @@
-export void handleInput(void);
+#pragma once
+
+void handleInput(void);

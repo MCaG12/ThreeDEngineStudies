@@ -9,6 +9,7 @@
 #include <windows.h>
 #include "transform.h"
 #include "utils.h"
+#include "handleInput.h"
 
 #define KEY_DOWN(k) (GetAsyncKeyState(k))
 
@@ -24,6 +25,10 @@ LONG G_MonitorHeight = 0;
 Transform transformMatrix;
 Transform transformMatrix2;
 
+Mesh Test;
+
+bool quickTestHere = Test.loadObjFile("./cube.obj");
+
 typedef struct SCENE_BIT_MAP
 {
     BITMAPINFO BitMapInfo;
@@ -31,6 +36,19 @@ typedef struct SCENE_BIT_MAP
 } SCENE_BIT_MAP;
 
 SCENE_BIT_MAP g_backbuffer;
+
+void paintBitMap(display *DisplayObject)
+{
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            const Pixel& currentPixel = DisplayObject->pixelMap[y][x];
+            memcpy_s((Pixel*)g_backbuffer.memory_canvas + (width * y) + x, sizeof(currentPixel), &currentPixel, sizeof(Pixel));
+
+        }
+    }
+}
 
 void handleInput(void)
 {
@@ -102,22 +120,14 @@ void handleInput(void)
     }
 }
 
-void paintBitMap(display *DisplayObject)
-{
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            const Pixel& currentPixel = DisplayObject->pixelMap[y][x];
-            memcpy_s((Pixel*)g_backbuffer.memory_canvas + (width * y) + x, sizeof(currentPixel), &currentPixel, sizeof(Pixel));
-
-        }
-    }
-}
 
 int DrawScene()
 {
 
+    Vector3d<double> LightRay(0.3, 0.8, 0.5);
+
+    LightRay = LightRay.normalizeVector();
+    
     HDC DeviceContext = GetDC(g_window_handle);
 
     Vector3d<double> origin(0, 0, 0);
@@ -230,6 +240,9 @@ int DrawScene()
         Vector4d pointTwo = Pairs[edges[i][1]];
         Vector4d pointThree = Pairs[edges[i][2]];
 
+        Vector3d<double> PointOneWorldPos(pointOne.x, pointOne.y, pointOne.z);
+        Vector3d<double> PointTwoWorldPos(pointTwo.x, pointTwo.y, pointTwo.z); 
+        Vector3d<double> PointThreeWorldPos(pointThree.x, pointThree.y, pointThree.z); 
     
         if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
         if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
@@ -242,35 +255,13 @@ int DrawScene()
         DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
         DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
 
+        double faceBrightness = DisplayObject.calculateFaceBrightness(PointOneWorldPos, PointTwoWorldPos, PointThreeWorldPos, LightRay);
+
         Pixel Painted = PlaneColors[i];
 
-        DisplayObject.paintPixel
-                (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
-                   ScreenPointTwo.first, ScreenPointTwo.second, (pointTwo.z / pointTwo.w),
-                   ScreenPointThree.first, ScreenPointThree.second, (pointThree.z / pointThree.w),
-                   Painted
-                );
-    }
-    
-    for(int i = 0; i < 12; i++)
-    {
-        Vector4d pointOne = Pairs2[edges[i][0]];
-        Vector4d pointTwo = Pairs2[edges[i][1]];
-        Vector4d pointThree = Pairs2[edges[i][2]];
-
-    
-        if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
-        if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
-
-        std::pair<double,double> ScreenPointOne = UsefulFunctions.putToScreen(&pointOne, width, height);
-        std::pair<double,double> ScreenPointTwo = UsefulFunctions.putToScreen(&pointTwo, width, height);
-        std::pair<double,double> ScreenPointThree = UsefulFunctions.putToScreen(&pointThree, width, height);
-
-        //DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
-       // DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
-        //DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
-
-        Pixel Painted = PlaneColors2[i];
+        Painted.Blue *= faceBrightness;
+        Painted.Green *= faceBrightness;
+        Painted.Red *= faceBrightness;
 
         DisplayObject.paintPixel
                 (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
@@ -279,6 +270,34 @@ int DrawScene()
                    Painted
                 );
     }
+    
+    // for(int i = 0; i < 12; i++)
+    // {
+    //     Vector4d pointOne = Pairs2[edges[i][0]];
+    //     Vector4d pointTwo = Pairs2[edges[i][1]];
+    //     Vector4d pointThree = Pairs2[edges[i][2]];
+
+    
+    //     if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
+    //     if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
+
+    //     std::pair<double,double> ScreenPointOne = UsefulFunctions.putToScreen(&pointOne, width, height);
+    //     std::pair<double,double> ScreenPointTwo = UsefulFunctions.putToScreen(&pointTwo, width, height);
+    //     std::pair<double,double> ScreenPointThree = UsefulFunctions.putToScreen(&pointThree, width, height);
+
+    //     //DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
+    //    // DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
+    //     //DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
+
+    //     Pixel Painted = PlaneColors2[i];
+
+    //     DisplayObject.paintPixel
+    //             (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
+    //                ScreenPointTwo.first, ScreenPointTwo.second, (pointTwo.z / pointTwo.w),
+    //                ScreenPointThree.first, ScreenPointThree.second, (pointThree.z / pointThree.w),
+    //                Painted
+    //             );
+    // }
 
     paintBitMap(&DisplayObject);
     StretchDIBits(DeviceContext, 0, 0, G_MonitorWidth, G_MonitorHeight, 0, 0, width, height, g_backbuffer.memory_canvas, &g_backbuffer.BitMapInfo, DIB_RGB_COLORS, SRCCOPY);

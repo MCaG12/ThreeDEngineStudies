@@ -125,6 +125,36 @@ display::paintPixel(double x0, double y0, double z0,
     }
 }
 
+double display::calculateFaceBrightness( Vector3d<double> EdgeOne, Vector3d<double> EdgeTwo, 
+                                         Vector3d<double> EdgeThree, Vector3d<double> LightDirection)
+{
+    Vector3d<double> differenceEdgeOneEdgeTwo(0,0,0);
+    Vector3d<double> differenceEdgeOneEdgeThree(0,0,0);
+
+    differenceEdgeOneEdgeTwo.setVectorIndex(0 , (EdgeTwo.getVectorIndex(0)  - EdgeOne.getVectorIndex(0) ) );
+    differenceEdgeOneEdgeTwo.setVectorIndex(1,  (EdgeTwo.getVectorIndex(1)  - EdgeOne.getVectorIndex(1) ) );
+    differenceEdgeOneEdgeTwo.setVectorIndex(2,  (EdgeTwo.getVectorIndex(2)  - EdgeOne.getVectorIndex(2) ) );
+
+    differenceEdgeOneEdgeThree.setVectorIndex(0 , (EdgeThree.getVectorIndex(0)  - EdgeOne.getVectorIndex(0) ) );
+    differenceEdgeOneEdgeThree.setVectorIndex(1,  (EdgeThree.getVectorIndex(1)  - EdgeOne.getVectorIndex(1) ) );
+    differenceEdgeOneEdgeThree.setVectorIndex(2,  (EdgeThree.getVectorIndex(2)  - EdgeOne.getVectorIndex(2) ) );
+    
+    Vector3d<double> Normal = differenceEdgeOneEdgeTwo.crossProduct(differenceEdgeOneEdgeThree);
+
+    Normal = Normal.normalizeVector();
+
+    double FaceBrightness = Normal.getVectorIndex(0) * LightDirection.getVectorIndex(0) +
+                            Normal.getVectorIndex(1) * LightDirection.getVectorIndex(1) +
+                            Normal.getVectorIndex(2) * LightDirection.getVectorIndex(2);
+
+    if( FaceBrightness < 0 ) { FaceBrightness = 0; }
+
+    double ambient = 0.15; //pure black looks bad , brighten things up a little
+
+    return ambient + (1 - ambient) * FaceBrightness;
+
+}
+
 void display::savePPMformat(void)
 {
     std::ofstream outFile("output.ppm", std::ios::binary);

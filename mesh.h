@@ -1,6 +1,9 @@
 #pragma once
 #include "Vector3d.h"  
 #include "vector"
+#include <iostream>
+#include <fstream>
+#include <sstream> 
 
 struct Triangle
 {
@@ -20,6 +23,7 @@ class Mesh
         const std::vector<Triangle>& getTriangles() const;
 
         void makeDebugCube();
+        bool loadObjFile(std::string ObjFilePath);
 };
 
 inline const std::vector<Vector3d<double>>& Mesh::getVertices() 
@@ -47,4 +51,5 @@ Mesh::makeDebugCube(void)
         Triangle(0, 3, 7), Triangle(1, 5, 6), Triangle(0, 2, 3), Triangle(7, 5, 4),
         Triangle(0, 5, 1), Triangle(3, 6, 7), Triangle(0, 7, 4), Triangle(1, 6, 2)
     };
+
 }
