@@ -26,15 +26,13 @@ display::display(int Width, int Height)
     return;
 }
 
-void display::drawLine(double pointOneX, double pointOneY, double pointTwoX, double pointTwoY)
+void display::drawLine(double pointOneX, double pointOneY, double pointTwoX, double pointTwoY, Pixel LineColor)
 {
 
     int initialX     = (int)std::lround(pointOneX);
     int initialY     = (int)std::lround(pointOneY);
     int destinationX = (int)std::lround(pointTwoX);
     int destinationY = (int)std::lround(pointTwoY);
-
-    Pixel Painted(255,255, 255);
 
     int distanceX = abs(destinationX - initialX);
     int distanceY = abs(destinationY - initialY);
@@ -49,7 +47,7 @@ void display::drawLine(double pointOneX, double pointOneY, double pointTwoX, dou
         bool canPaint =  (initialX < this->Width && initialX >= 0) && (initialY < this->Height && initialY >= 0); 
       
 
-        if( canPaint ) {  this->pixelMap[initialY][initialX] = Painted; }
+        if( canPaint ) {  this->pixelMap[initialY][initialX] = LineColor; }
 
         if(initialX == destinationX && initialY == destinationY) { return; }
 

@@ -25,10 +25,6 @@ LONG G_MonitorHeight = 0;
 Transform transformMatrix;
 Transform transformMatrix2;
 
-Mesh Test;
-
-bool quickTestHere = Test.loadObjFile("./cube.obj");
-
 typedef struct SCENE_BIT_MAP
 {
     BITMAPINFO BitMapInfo;
@@ -138,107 +134,36 @@ int DrawScene()
     Matrix<double,4,4> view = camera.getViewMatrix();
     Matrix<double,4,4> proj = camera.getProjectionMatrix();
 
-    Matrix<double,4,4> model2 = transformMatrix2.getModelMatrix();
-    Matrix<double,4,4> view2 = camera.getViewMatrix();
-    Matrix<double,4,4> proj2 = camera.getProjectionMatrix();
-
     Matrix<double,4,4> newPerspecitve = proj.GetFourByFourMatrixMultiplication(view).GetFourByFourMatrixMultiplication(model);
-    Matrix<double,4,4> newPerspecitve2 = proj2.GetFourByFourMatrixMultiplication(view2).GetFourByFourMatrixMultiplication(model2);
 
     Mesh Object;
-    Object.makeDebugCube();
+    bool loadObject = Object.loadObjFile("./Untitled.obj");
+
+    //Object.makeDebugCube();
+
+    if(!loadObject){ return -1; }
     
     const std::vector<Vector3d<double>>& vertices = Object.getVertices();
     std::vector<Vector4d> Pairs;
-    std::vector<Vector4d> Pairs2;
 
     for (size_t  i = 0; i < vertices.size(); i++)
     {
         Vector4d current = newPerspecitve.getVector4d(vertices[i]);
 
         Pairs.push_back(current);
-        // Vector3d<double> newVertex = newPerspecitve.MovePoint(vertices[i]);
-        // double screenX = (newVertex.getVectorIndex(0) + 1) * 0.5 * width;
-        // double screenY = (newVertex.getVectorIndex(1) + 1) * 0.5 * height;
-
-        // std::pair<double, double> currentXY = {screenX, screenY};
-        // Pairs.push_back(currentXY);
     }
-
-    for (size_t  i = 0; i < vertices.size(); i++)
-    {
-        Vector4d current = newPerspecitve2.getVector4d(vertices[i]);
-
-        Pairs2.push_back(current);
-        // Vector3d<double> newVertex = newPerspecitve.MovePoint(vertices[i]);
-        // double screenX = (newVertex.getVectorIndex(0) + 1) * 0.5 * width;
-        // double screenY = (newVertex.getVectorIndex(1) + 1) * 0.5 * height;
-
-        // std::pair<double, double> currentXY = {screenX, screenY};
-        // Pairs.push_back(currentXY);
-    }
-
 
     display DisplayObject(height, width);
     Utils UsefulFunctions;
 
-    int edges[12][3] = {
-        {3,2,6}, {3,6,7},    // front  (z = +1)
-        {0,4,5}, {0,5,1},    // back   (z = -1)
-        {1,5,6}, {1,6,2},    // right  (x = +1)
-        {0,3,7}, {0,7,4},    // left   (x = -1)
-        {4,7,6}, {4,6,5},    // top    (y = +1)
-        {0,1,2}, {0,2,3}     // bottom (y = -1)
-    };
+    std::vector<Triangle> modelTriangles = Object.getTriangles();
 
-    Pixel Red    (255,0,0);
-    Pixel Blue   (0,0,255);
-    Pixel Green  (0,255,0);
-    Pixel Purple (255,0,255);
-    Pixel Yellow (255,255,0);
-    Pixel Cyan   (0,255,255);
-    Pixel Salmon      (250, 128, 114);
-    Pixel Brown       (139, 69, 19);
-    Pixel Chocolate   (210, 105, 30);
-    Pixel Indigo      (75, 0, 130);
-    Pixel Violet      (138, 43, 226);
-    Pixel Navy        (0, 0, 128);
-
-    std::vector<Pixel>  PlaneColors;
-
-    PlaneColors.push_back(Red);
-    PlaneColors.push_back(Blue);
-    PlaneColors.push_back(Green);
-    PlaneColors.push_back(Purple);
-    PlaneColors.push_back(Yellow);
-    PlaneColors.push_back(Cyan);
-    PlaneColors.push_back(Salmon);
-    PlaneColors.push_back(Brown);
-    PlaneColors.push_back(Chocolate);
-    PlaneColors.push_back(Indigo);
-    PlaneColors.push_back(Violet);
-    PlaneColors.push_back(Navy);
-
-    std::vector<Pixel>  PlaneColors2;
-
-    PlaneColors2.push_back(Red);
-    PlaneColors2.push_back(Indigo);
-    PlaneColors2.push_back(Yellow);
-    PlaneColors2.push_back(Cyan);
-    PlaneColors2.push_back(Brown);
-    PlaneColors2.push_back(Purple);
-    PlaneColors2.push_back(Navy);
-    PlaneColors2.push_back(Salmon);
-    PlaneColors2.push_back(Green);
-    PlaneColors2.push_back(Violet);
-    PlaneColors2.push_back(Chocolate);
-    PlaneColors2.push_back(Blue);
-
-    for(int i = 0; i < 12; i++)
+    for(size_t i = 0; i < modelTriangles.size(); i++)
     {
-        Vector4d pointOne = Pairs[edges[i][0]];
-        Vector4d pointTwo = Pairs[edges[i][1]];
-        Vector4d pointThree = Pairs[edges[i][2]];
+        Triangle currentTriangle = modelTriangles[i];
+        Vector4d pointOne   = Pairs[currentTriangle.v0Index];
+        Vector4d pointTwo   = Pairs[currentTriangle.v1Index];
+        Vector4d pointThree = Pairs[currentTriangle.v2Index];
 
         Vector3d<double> PointOneWorldPos(pointOne.x, pointOne.y, pointOne.z);
         Vector3d<double> PointTwoWorldPos(pointTwo.x, pointTwo.y, pointTwo.z); 
@@ -251,17 +176,16 @@ int DrawScene()
         std::pair<double,double> ScreenPointTwo = UsefulFunctions.putToScreen(&pointTwo, width, height);
         std::pair<double,double> ScreenPointThree = UsefulFunctions.putToScreen(&pointThree, width, height);
 
-        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
-        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
-        DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
-
         double faceBrightness = DisplayObject.calculateFaceBrightness(PointOneWorldPos, PointTwoWorldPos, PointThreeWorldPos, LightRay);
 
-        Pixel Painted = PlaneColors[i];
-
+        Pixel Painted(255,255,255);
         Painted.Blue *= faceBrightness;
-        Painted.Green *= faceBrightness;
         Painted.Red *= faceBrightness;
+        Painted.Green *= faceBrightness;
+
+        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second , Painted);    
+        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second, Painted);    
+        DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second, Painted);  
 
         DisplayObject.paintPixel
                 (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
@@ -270,34 +194,6 @@ int DrawScene()
                    Painted
                 );
     }
-    
-    // for(int i = 0; i < 12; i++)
-    // {
-    //     Vector4d pointOne = Pairs2[edges[i][0]];
-    //     Vector4d pointTwo = Pairs2[edges[i][1]];
-    //     Vector4d pointThree = Pairs2[edges[i][2]];
-
-    
-    //     if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
-    //     if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
-
-    //     std::pair<double,double> ScreenPointOne = UsefulFunctions.putToScreen(&pointOne, width, height);
-    //     std::pair<double,double> ScreenPointTwo = UsefulFunctions.putToScreen(&pointTwo, width, height);
-    //     std::pair<double,double> ScreenPointThree = UsefulFunctions.putToScreen(&pointThree, width, height);
-
-    //     //DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second);    
-    //    // DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second);    
-    //     //DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second);  
-
-    //     Pixel Painted = PlaneColors2[i];
-
-    //     DisplayObject.paintPixel
-    //             (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
-    //                ScreenPointTwo.first, ScreenPointTwo.second, (pointTwo.z / pointTwo.w),
-    //                ScreenPointThree.first, ScreenPointThree.second, (pointThree.z / pointThree.w),
-    //                Painted
-    //             );
-    // }
 
     paintBitMap(&DisplayObject);
     StretchDIBits(DeviceContext, 0, 0, G_MonitorWidth, G_MonitorHeight, 0, 0, width, height, g_backbuffer.memory_canvas, &g_backbuffer.BitMapInfo, DIB_RGB_COLORS, SRCCOPY);
