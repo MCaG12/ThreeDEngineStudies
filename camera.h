@@ -33,7 +33,7 @@ class Camera
         
 };
 
-Camera::Camera(int Width, int Height, double FOV,
+inline Camera::Camera(int Width, int Height, double FOV,
                Vector3d<double>& Position)
     : cameraPosition(Position),
       yaw(-90),
@@ -43,38 +43,38 @@ Camera::Camera(int Width, int Height, double FOV,
 {
 }
 
-double
+inline double
 Camera::getCameraYaw(void)
 {
     return this->yaw;
 }
 
-double
+inline double
 Camera::getCameraPitch(void)
 {
     return this->pitch;
 }
 
-double 
+inline double 
 Camera::getFovRad(void)
 {
     double  fovRad = (this->fov * PI  )/ 180;
     return fovRad;
 }
 
-double 
+inline double 
 Camera::getCameraAspectRatio(void)
 {
     return this->aspectRatio;
 }
 
-Vector3d<double>
+inline Vector3d<double>
 Camera::getCameraPosition(void)
 {
     return this->cameraPosition;
 }
 
-Vector3d<double> 
+inline Vector3d<double> 
 Camera::getFowardVector(void)
 {
     double yawRad = (this->yaw * PI) / 180;
@@ -88,7 +88,7 @@ Camera::getFowardVector(void)
     return result;
 }
 
-Vector3d<double>
+inline Vector3d<double>
 Camera::getRightVector(void)
 {
     Vector3d<double> UpVector(0,1,0);
@@ -100,7 +100,7 @@ Camera::getRightVector(void)
     
 }
 
-Matrix<double, 4, 4> 
+inline Matrix<double, 4, 4> 
 Camera::getProjectionMatrix(void)
 {
     double scalingFactor  = ( 1 / tan(this->getFovRad() /2.0 ) );
@@ -115,7 +115,7 @@ Camera::getProjectionMatrix(void)
     return projectionMatrix;
 }
 
-Matrix<double,4,4>
+inline Matrix<double,4,4>
 Camera::getViewMatrix(void)
 {
     Vector3d<double> foward = this->getFowardVector();

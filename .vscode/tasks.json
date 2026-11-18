@@ -14,7 +14,9 @@
                 "${workspaceFolder}/display.cpp",
                 "${workspaceFolder}/utils.cpp",
                 "${workspaceFolder}/mesh.cpp",
+                "${workspaceFolder}/handleInput.cpp",
                 "-mwindows",
+                "-lgdi32",
                 "-o",
                 "${workspaceFolder}/ThreeDEngineStudies.exe"
             ],

@@ -1,20 +1,4 @@
-#include <iostream>
-
-#include "Vector3d.h"  
-#include "matrix.h"
-#include "camera.h"
-#include "mesh.h"
-
-#include "display.h"
-#include <windows.h>
-#include "transform.h"
-#include "utils.h"
-#include "handleInput.h"
-
-#define KEY_DOWN(k) (GetAsyncKeyState(k))
-
-const int width = 900;
-const int height = 900;
+#include "main.h"
 
 HWND g_window_handle = 0;
 MONITORINFO G_MonitorInfo;
@@ -23,15 +7,20 @@ LONG G_MonitorWidth = 0;
 LONG G_MonitorHeight = 0;
 
 Transform transformMatrix;
-Transform transformMatrix2;
 
-typedef struct SCENE_BIT_MAP
-{
-    BITMAPINFO BitMapInfo;
-    void* memory_canvas;
-} SCENE_BIT_MAP;
+int width = 900;
+int height = 900;
 
 SCENE_BIT_MAP g_backbuffer;
+
+Mesh Object;
+bool loadObject = Object.loadObjFile("./Untitled.obj");
+
+Vector3d<double> origin(0, 0, 0);
+
+display DisplayObject(height, width);
+Utils UsefulFunctions;
+
 
 void paintBitMap(display *DisplayObject)
 {
@@ -46,100 +35,23 @@ void paintBitMap(display *DisplayObject)
     }
 }
 
-void handleInput(void)
-{
-    bool EscKeyIsDown     = KEY_DOWN(VK_ESCAPE);
-
-    bool UpKeyIsDown      = KEY_DOWN(VK_SPACE);
-    bool DownKeyIsDown    = KEY_DOWN(VK_SHIFT);
-
-    bool FowardKeyIsDown  = KEY_DOWN('W');
-    bool BackKeyIsDown    = KEY_DOWN('S');
-
-    bool RightKeyIsDown   = KEY_DOWN('D');
-    bool LeftKeyIsDown    = KEY_DOWN('A');
-
-    bool RotateRight      = KEY_DOWN('R');
-    bool RotateLeft       = KEY_DOWN('E');
-
-    if(EscKeyIsDown)
-    {
-        SendMessageA(g_window_handle, WM_CLOSE, 0, 0);
-    }
 
 
-    if(FowardKeyIsDown) 
-    {
-        transformMatrix.position.setVectorIndex(2, transformMatrix.position.getVectorIndex(2) + 1);
-    }
-
-    if(BackKeyIsDown) 
-    {
-        transformMatrix.position.setVectorIndex(2, transformMatrix.position.getVectorIndex(2) - 1);
-    }
-
-
-    if(RightKeyIsDown) 
-    {
-        transformMatrix.position.setVectorIndex(0, transformMatrix.position.getVectorIndex(0) + 1);
-    }
-
-    if(LeftKeyIsDown) 
-    {
-        transformMatrix.position.setVectorIndex(0, transformMatrix.position.getVectorIndex(0) - 1);
-    }
-
-    if(UpKeyIsDown) 
-    {
-        transformMatrix.position.setVectorIndex(1, transformMatrix.position.getVectorIndex(1) - 1);
-    }
-
-    if(DownKeyIsDown) 
-    {
-        transformMatrix.position.setVectorIndex(1, transformMatrix.position.getVectorIndex(1) + 1);
-    }
-
-    if(RotateRight) 
-    {
-        for(int i = 0; i < 3; i++)
-        {
-            transformMatrix.rotation.setVectorIndex(i, transformMatrix.rotation.getVectorIndex(i) + 1);
-        }
-    }
-
-    if(RotateLeft) 
-    {
-        for(int i = 0; i < 3; i++)
-        {
-            transformMatrix.rotation.setVectorIndex(i, transformMatrix.rotation.getVectorIndex(i) - 1);
-        }
-    }
-}
-
-
-int DrawScene()
+int DrawScene(HDC DeviceContext)
 {
 
     Vector3d<double> LightRay(0.3, 0.8, 0.5);
 
     LightRay = LightRay.normalizeVector();
-    
-    HDC DeviceContext = GetDC(g_window_handle);
-
-    Vector3d<double> origin(0, 0, 0);
 
     Camera camera(width, height, 90, origin);
 
+    // setting up the rendering pipeline with Model, view, scale
     Matrix<double,4,4> model = transformMatrix.getModelMatrix();
     Matrix<double,4,4> view = camera.getViewMatrix();
     Matrix<double,4,4> proj = camera.getProjectionMatrix();
 
     Matrix<double,4,4> newPerspecitve = proj.GetFourByFourMatrixMultiplication(view).GetFourByFourMatrixMultiplication(model);
-
-    Mesh Object;
-    bool loadObject = Object.loadObjFile("./Untitled.obj");
-
-    //Object.makeDebugCube();
 
     if(!loadObject){ return -1; }
     
@@ -152,9 +64,6 @@ int DrawScene()
 
         Pairs.push_back(current);
     }
-
-    display DisplayObject(height, width);
-    Utils UsefulFunctions;
 
     std::vector<Triangle> modelTriangles = Object.getTriangles();
 
@@ -183,10 +92,6 @@ int DrawScene()
         Painted.Red *= faceBrightness;
         Painted.Green *= faceBrightness;
 
-        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointTwo.first, ScreenPointTwo.second , Painted);    
-        DisplayObject.drawLine(ScreenPointOne.first, ScreenPointOne.second, ScreenPointThree.first, ScreenPointThree.second, Painted);    
-        DisplayObject.drawLine(ScreenPointTwo.first, ScreenPointTwo.second, ScreenPointThree.first, ScreenPointThree.second, Painted);  
-
         DisplayObject.paintPixel
                 (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
                    ScreenPointTwo.first, ScreenPointTwo.second, (pointTwo.z / pointTwo.w),
@@ -198,7 +103,7 @@ int DrawScene()
     paintBitMap(&DisplayObject);
     StretchDIBits(DeviceContext, 0, 0, G_MonitorWidth, G_MonitorHeight, 0, 0, width, height, g_backbuffer.memory_canvas, &g_backbuffer.BitMapInfo, DIB_RGB_COLORS, SRCCOPY);
 
-    ReleaseDC(g_window_handle, DeviceContext);
+    DisplayObject.clear();
     return 0;
 }
 
@@ -206,14 +111,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    LARGE_INTEGER FrameStart;
+    LARGE_INTEGER FrameEnd;
+    LARGE_INTEGER Frequency;
+    QueryPerformanceFrequency(&Frequency);
+
     transformMatrix.position = Vector3d<double>(0, 0, -5);
     transformMatrix.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
     transformMatrix.scale    = Vector3d<double>(1, 1, 1);
-
-    transformMatrix2.position = Vector3d<double>(1, 1, -5);
-    transformMatrix2.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
-    transformMatrix2.scale    = Vector3d<double>(1, 1, 1);
-
 
     (void)hPrevInstance;
     (void)lpCmdLine;
@@ -271,9 +176,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     MSG msg = {};
     bool running = true;
+   
 
     while (running)
     {
+        HDC DeviceContext = GetDC(g_window_handle);
+        QueryPerformanceCounter(&FrameStart);
         while (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
         {
             if (msg.message == WM_QUIT)
@@ -290,11 +198,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         //processInput();
         handleInput();
-        DrawScene();
+        RECT client;
+        GetClientRect(g_window_handle, &client);
+        int clientWidth  = client.right - client.left;
+        int clientHeight = client.bottom - client.top;
+        if (clientWidth > 0 && clientHeight > 0) DrawScene(DeviceContext);
+        QueryPerformanceCounter(&FrameEnd);
+
+        char c_DebugBuffer[64] = {0};
+
+        double elapsedMs = (double)(FrameEnd.QuadPart - FrameStart.QuadPart) * 1000.0
+                 / (double)Frequency.QuadPart;
+
+        sprintf_s(c_DebugBuffer, sizeof(c_DebugBuffer),
+                "Frame: %.2f ms (%.0f fps)", elapsedMs, 1000.0 / elapsedMs);
+        //this TextOut function prints stuff onto our program!
+        TextOutA(DeviceContext, 0,0, c_DebugBuffer, (int) strlen(c_DebugBuffer));
+        ReleaseDC(g_window_handle, DeviceContext);
     }
+    //ReleaseDC(g_window_handle, DeviceContext);
 
-
-    
     return (int)msg.wParam;
 }
 

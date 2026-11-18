@@ -1,6 +1,4 @@
-#include
-
-#define KEY_DOWN(k) (GetAsyncKeyState(k))
+#include "main.h"
 
 void handleInput(void)
 {
@@ -15,8 +13,14 @@ void handleInput(void)
     bool RightKeyIsDown   = KEY_DOWN('D');
     bool LeftKeyIsDown    = KEY_DOWN('A');
 
-    bool RotateRight      = KEY_DOWN('R');
-    bool RotateLeft       = KEY_DOWN('E');
+    bool RotateRightFoward      = KEY_DOWN('Y');
+    bool RotateRightBack        = KEY_DOWN('U');
+
+    bool RotateLeftFoward      = KEY_DOWN('H');
+    bool RotateLeftBack        = KEY_DOWN('J');
+
+    bool RotateUpFoward      = KEY_DOWN('N');
+    bool RotateUpBack        = KEY_DOWN('M');
 
     if(EscKeyIsDown)
     {
@@ -55,19 +59,34 @@ void handleInput(void)
         transformMatrix.position.setVectorIndex(1, transformMatrix.position.getVectorIndex(1) + 1);
     }
 
-    if(RotateRight) 
+    if(RotateRightFoward) 
     {
-        for(int i = 0; i < 3; i++)
-        {
-            transformMatrix.rotation.setVectorIndex(i, transformMatrix.rotation.getVectorIndex(i) + 1);
-        }
+        transformMatrix.rotation.setVectorIndex(0, transformMatrix.rotation.getVectorIndex(0) + 10);
     }
 
-    if(RotateLeft) 
+    if(RotateRightBack) 
     {
-        for(int i = 0; i < 3; i++)
-        {
-            transformMatrix.rotation.setVectorIndex(i, transformMatrix.rotation.getVectorIndex(i) - 1);
-        }
+        transformMatrix.rotation.setVectorIndex(0, transformMatrix.rotation.getVectorIndex(0) - 10);
     }
+
+    if(RotateLeftFoward) 
+    {
+        transformMatrix.rotation.setVectorIndex(1, transformMatrix.rotation.getVectorIndex(1) + 10);
+    }
+
+    if(RotateLeftBack) 
+    {
+        transformMatrix.rotation.setVectorIndex(1, transformMatrix.rotation.getVectorIndex(1) - 10);
+    }
+
+    if(RotateUpFoward) 
+    {
+        transformMatrix.rotation.setVectorIndex(2, transformMatrix.rotation.getVectorIndex(2) + 10);
+    }
+
+    if(RotateUpBack) 
+    {
+        transformMatrix.rotation.setVectorIndex(2, transformMatrix.rotation.getVectorIndex(2) - 10);
+    }
+
 }

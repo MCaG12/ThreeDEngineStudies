@@ -96,6 +96,8 @@ display::paintPixel(double x0, double y0, double z0,
     if(BottomMostY < 0) BottomMostY = 0;
     if(TopMostY > this->Height) TopMostY = this->Height - 1;
 
+    if(LeftMostX < 0 || RightMostX > Width - 1 || BottomMostY < 0 || TopMostY > Height - 1) return;
+
     for(int y = BottomMostY; y <= TopMostY; y++)
     {
         for (int x = LeftMostX; x <= RightMostX; x++)
@@ -172,4 +174,14 @@ void display::savePPMformat(void)
             outFile.put(static_cast<char>(currentPixel.Blue));
         }
     }
+}
+
+void display::clear()
+{
+    for (int y = 0; y < Height; y++)
+        for (int x = 0; x < Width; x++)
+        {
+            pixelMap[y][x]    = Pixel(0, 0, 0);
+            DepthBuffer[y][x] = std::numeric_limits<double>::infinity();
+        }
 }

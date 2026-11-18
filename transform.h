@@ -24,7 +24,7 @@ class Transform {
 
 };
 
-Matrix<double,4,4> 
+inline Matrix<double,4,4> 
 Transform::getIdentityMatrix(void)
 {
     Matrix<double,4,4> identity(0);
@@ -38,7 +38,7 @@ Transform::getIdentityMatrix(void)
 }
 
 
-Matrix<double,4,4> 
+inline Matrix<double,4,4> 
 Transform::getTranslationMatrix(const Vector3d<double> &position)
 {
     Matrix<double,4,4> identity = this->getIdentityMatrix();
@@ -50,7 +50,7 @@ Transform::getTranslationMatrix(const Vector3d<double> &position)
     return identity;
 }
 
-Matrix<double, 4, 4>
+inline Matrix<double, 4, 4>
 Transform::getScaleMatrix(const Vector3d<double> &scale)
 {
     Matrix<double,4,4> scaleMatrix = this->getIdentityMatrix();
@@ -62,7 +62,7 @@ Transform::getScaleMatrix(const Vector3d<double> &scale)
     return scaleMatrix;
 }
 
-Matrix<double, 4, 4>
+inline Matrix<double, 4, 4>
 Transform::getRotationX(double degrees)
 {
     double degreeInRad = (degrees * M_PI) / 180;
@@ -76,7 +76,7 @@ Transform::getRotationX(double degrees)
     return rotation;
 }
 
-Matrix<double, 4, 4>
+inline Matrix<double, 4, 4>
 Transform::getRotationY(double degrees)
 {
     double degreeInRad = (degrees * M_PI) / 180;
@@ -90,7 +90,7 @@ Transform::getRotationY(double degrees)
     return rotation;
 }
 
-Matrix<double, 4, 4>
+inline Matrix<double, 4, 4>
 Transform::getRotationZ(double degrees)
 {
     double degreeInRad = (degrees * M_PI) / 180;
@@ -104,7 +104,7 @@ Transform::getRotationZ(double degrees)
     return rotation;
 }
 
-Matrix<double,4,4> 
+inline Matrix<double,4,4> 
 Transform::getModelMatrix(void)
 {
     Matrix<double,4,4> TranslationMatrix = this->getTranslationMatrix(this->position);
