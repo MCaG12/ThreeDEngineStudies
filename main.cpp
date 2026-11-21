@@ -7,6 +7,7 @@ LONG G_MonitorWidth = 0;
 LONG G_MonitorHeight = 0;
 
 Transform transformMatrix;
+Transform floorMatrix;
 
 int width = 900;
 int height = 900;
@@ -16,11 +17,15 @@ SCENE_BIT_MAP g_backbuffer;
 Mesh Object;
 bool loadObject = Object.loadObjFile("./Untitled.obj");
 
+Mesh CheckerboardDebugGrid;
+bool loadCheckerboard = CheckerboardDebugGrid.makeDebugChessGrid(20, 2, Pixel(122,122,122) ,Pixel(204,204,204));
+
 Vector3d<double> origin(0, 0, 0);
 
 display DisplayObject(height, width);
 Utils UsefulFunctions;
 
+Camera camera(width, height, 90, origin);
 
 void paintBitMap(display *DisplayObject)
 {
@@ -35,37 +40,36 @@ void paintBitMap(display *DisplayObject)
     }
 }
 
-
-
-int DrawScene(HDC DeviceContext)
+void DrawObject(Mesh objectToDraw, Vector3d<double> LightRay, Camera camera, Pixel Color, Transform p_transformMatrix, bool Debug)
 {
-
-    Vector3d<double> LightRay(0.3, 0.8, 0.5);
-
-    LightRay = LightRay.normalizeVector();
-
-    Camera camera(width, height, 90, origin);
-
     // setting up the rendering pipeline with Model, view, scale
-    Matrix<double,4,4> model = transformMatrix.getModelMatrix();
+    Matrix<double,4,4> model = p_transformMatrix.getModelMatrix();
     Matrix<double,4,4> view = camera.getViewMatrix();
     Matrix<double,4,4> proj = camera.getProjectionMatrix();
 
-    Matrix<double,4,4> newPerspecitve = proj.GetFourByFourMatrixMultiplication(view).GetFourByFourMatrixMultiplication(model);
+    Matrix<double,4,4> Perspective = proj.GetFourByFourMatrixMultiplication(view).GetFourByFourMatrixMultiplication(model);
 
-    if(!loadObject){ return -1; }
-    
-    const std::vector<Vector3d<double>>& vertices = Object.getVertices();
+    const std::vector<Vector3d<double>>& vertices = objectToDraw.getVertices();
     std::vector<Vector4d> Pairs;
 
     for (size_t  i = 0; i < vertices.size(); i++)
     {
-        Vector4d current = newPerspecitve.getVector4d(vertices[i]);
+        Vector4d current = Perspective.getVector4d(vertices[i]);
 
         Pairs.push_back(current);
     }
 
-    std::vector<Triangle> modelTriangles = Object.getTriangles();
+    std::vector<Vector3d<double>> worldVertices;
+    worldVertices.reserve(vertices.size());
+
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        Vector4d w = model.getVector4d(vertices[i]);
+        worldVertices.push_back(Vector3d<double>(w.x, w.y, w.z));
+    }
+
+    std::vector<Triangle> modelTriangles = objectToDraw.getTriangles();
+    std::vector<Pixel> modelColors = objectToDraw.getColors();
 
     for(size_t i = 0; i < modelTriangles.size(); i++)
     {
@@ -74,11 +78,11 @@ int DrawScene(HDC DeviceContext)
         Vector4d pointTwo   = Pairs[currentTriangle.v1Index];
         Vector4d pointThree = Pairs[currentTriangle.v2Index];
 
-        Vector3d<double> PointOneWorldPos(pointOne.x, pointOne.y, pointOne.z);
-        Vector3d<double> PointTwoWorldPos(pointTwo.x, pointTwo.y, pointTwo.z); 
-        Vector3d<double> PointThreeWorldPos(pointThree.x, pointThree.y, pointThree.z); 
+        Vector3d<double> PointOneWorldPos   = worldVertices[currentTriangle.v0Index];
+        Vector3d<double> PointTwoWorldPos   = worldVertices[currentTriangle.v1Index];
+        Vector3d<double> PointThreeWorldPos = worldVertices[currentTriangle.v2Index];
     
-        if( !UsefulFunctions.applyClipping(&pointOne, &pointTwo) ) { continue; }
+        if (pointOne.z + pointOne.w < 0 || pointTwo.z + pointTwo.w < 0 || pointThree.z + pointThree.w < 0) continue;
         if( !UsefulFunctions.backFaceCullingCheck(&pointOne, &pointTwo, &pointThree) ) { continue; }
 
         std::pair<double,double> ScreenPointOne = UsefulFunctions.putToScreen(&pointOne, width, height);
@@ -87,10 +91,14 @@ int DrawScene(HDC DeviceContext)
 
         double faceBrightness = DisplayObject.calculateFaceBrightness(PointOneWorldPos, PointTwoWorldPos, PointThreeWorldPos, LightRay);
 
-        Pixel Painted(255,255,255);
+        Pixel Painted;
+        if(!Debug)  Painted = Color;
+        else Painted = modelColors[i];
         Painted.Blue *= faceBrightness;
         Painted.Red *= faceBrightness;
         Painted.Green *= faceBrightness;
+        
+        
 
         DisplayObject.paintPixel
                 (  ScreenPointOne.first, ScreenPointOne.second, (pointOne.z / pointOne.w),
@@ -99,6 +107,26 @@ int DrawScene(HDC DeviceContext)
                    Painted
                 );
     }
+
+    return;
+}
+
+int DrawScene(HDC DeviceContext)
+{
+
+    Vector3d<double> LightRay(0.3, 0.8, 0.5);
+
+    LightRay = LightRay.normalizeVector();
+
+    // // setting up the rendering pipeline with Model, view, scale
+    // Matrix<double,4,4> model = transformMatrix.getModelMatrix();
+    // Matrix<double,4,4> view = camera.getViewMatrix();
+    // Matrix<double,4,4> proj = camera.getProjectionMatrix();
+
+    // Matrix<double,4,4> newPerspecitve = proj.GetFourByFourMatrixMultiplication(view).GetFourByFourMatrixMultiplication(model);
+
+    DrawObject(Object, LightRay, camera, Pixel(255,255,255), transformMatrix, false);
+    DrawObject(CheckerboardDebugGrid, LightRay, camera, Pixel(255,0,0), floorMatrix, true);
 
     paintBitMap(&DisplayObject);
     StretchDIBits(DeviceContext, 0, 0, G_MonitorWidth, G_MonitorHeight, 0, 0, width, height, g_backbuffer.memory_canvas, &g_backbuffer.BitMapInfo, DIB_RGB_COLORS, SRCCOPY);
@@ -119,6 +147,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     transformMatrix.position = Vector3d<double>(0, 0, -5);
     transformMatrix.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
     transformMatrix.scale    = Vector3d<double>(1, 1, 1);
+
+    floorMatrix.position = Vector3d<double>(0, -2, 0);
+    floorMatrix.rotation = Vector3d<double>(0, 0, 0);   // 90 degrees of yaw
+    floorMatrix.scale    = Vector3d<double>(1, 1, 1);
 
     (void)hPrevInstance;
     (void)lpCmdLine;

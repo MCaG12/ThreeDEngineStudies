@@ -17,10 +17,17 @@ class Camera
     public:
 
         Camera(int Width, int Height, double FOV, Vector3d<double>& Position);
-        double getCameraYaw(void);
-        double getCameraPitch(void);
+
+        double* getCameraYaw(void);
+        void    setCameraYaw(double newYawValue);
+
+        double* getCameraPitch(void);
+        void    setCameraPitch(double newPitchValue);
+
         double getCameraAspectRatio(void);
-        Vector3d<double> getCameraPosition(void);
+
+        Vector3d<double>* getCameraPosition(void);
+        void setCameraPosition( Vector3d<double> *NewPosition);
 
         Vector3d<double> getFowardVector(void);
         Vector3d<double> getRightVector(void);
@@ -43,16 +50,30 @@ inline Camera::Camera(int Width, int Height, double FOV,
 {
 }
 
-inline double
+inline double*
 Camera::getCameraYaw(void)
 {
-    return this->yaw;
+    return &this->yaw;
 }
 
-inline double
+inline void
+Camera::setCameraYaw(double newYawValue)
+{
+    this->yaw = newYawValue;
+    return;
+}
+
+inline double*
 Camera::getCameraPitch(void)
 {
-    return this->pitch;
+    return &this->pitch;
+}
+
+inline void
+Camera::setCameraPitch(double newPitchValue)
+{
+    this->pitch = newPitchValue;
+    return;
 }
 
 inline double 
@@ -68,10 +89,16 @@ Camera::getCameraAspectRatio(void)
     return this->aspectRatio;
 }
 
-inline Vector3d<double>
+inline Vector3d<double> *
 Camera::getCameraPosition(void)
 {
-    return this->cameraPosition;
+    return &this->cameraPosition;
+}
+
+inline void
+Camera::setCameraPosition( Vector3d<double> *NewPosition )
+{
+    this->cameraPosition = (*NewPosition);
 }
 
 inline Vector3d<double> 
@@ -120,8 +147,14 @@ Camera::getViewMatrix(void)
 {
     Vector3d<double> foward = this->getFowardVector();
     Vector3d<double> right = this->getRightVector();
-    Vector3d<double> up(0,1,0);
+    Vector3d<double> up = right.crossProduct(foward).normalizeVector();
+    up = up.normalizeVector();
     Vector3d<double> pos = this->cameraPosition;
+
+    double test1 = right.getDotProduct(up);
+    double test2 = up.getDotProduct(foward);
+    double test3 = right.getDotProduct(foward);
+    //cout<<right.getDotProduct(up)<< up.getDotProduct(foward), right.getDotProduct(foward)
 
     Matrix<double, 4, 4> viewMatrix(0);
 

@@ -11,7 +11,9 @@
 #include "transform.h"
 #include "utils.h"
 #include "handleInput.h"
+#include <math.h>
 
+extern Camera camera;
 extern Transform transformMatrix;
 extern int width;
 extern int height;

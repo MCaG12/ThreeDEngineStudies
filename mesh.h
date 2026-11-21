@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream> 
+#include "pixel.h"
 
 struct Triangle
 {
@@ -17,12 +18,13 @@ class Mesh
     private:
         std::vector<Vector3d<double>> mesh_vertices;
         std::vector<Triangle> mesh_triangles;
-
+        std::vector<Pixel> mesh_triangles_colors;
     public:
         const std::vector<Vector3d<double>>& getVertices();
         const std::vector<Triangle>& getTriangles() const;
-
+        const std::vector<Pixel>& getColors(); 
         void makeDebugCube();
+        bool makeDebugChessGrid(int width, int tileWidth, Pixel CheckerBoardColorDark, Pixel CheckerBoardColorLight);
         bool loadObjFile(std::string ObjFilePath);
 };
 
@@ -34,6 +36,11 @@ inline const std::vector<Vector3d<double>>& Mesh::getVertices()
 inline const std::vector<Triangle>& Mesh::getTriangles() const
 {
     return this->mesh_triangles;    
+}
+
+inline const std::vector<Pixel>& Mesh::getColors()  
+{
+    return this->mesh_triangles_colors;    
 }
 
 inline void

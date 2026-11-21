@@ -50,10 +50,52 @@ Mesh::loadObjFile(std::string ObjFilePath)
             }
         }
     }
-    std::cout << mesh_vertices.size() << " vertices, " << mesh_triangles.size() << " triangles\n";
+    //std::cout << mesh_vertices.size() << " vertices, " << mesh_triangles.size() << " triangles\n";
     for (int i = 0; i < 5; i++)
         std::cout << mesh_vertices[i].getVectorIndex(0) << " "
                   << mesh_vertices[i].getVectorIndex(1) << " "
                   << mesh_vertices[i].getVectorIndex(2) << "\n";
+    return true;
+}
+
+bool
+Mesh::makeDebugChessGrid(int width, int tileWidth, Pixel CheckerBoardColorDark, Pixel CheckerBoardColorLight)
+{
+    this->mesh_vertices.clear();
+    this->mesh_triangles.clear();
+
+    double middleOfGrid = (width * tileWidth) / 2;
+    int stride  = width + 1;
+
+    for(int z = 0; z <= width; z++)
+    {
+        for(int x = 0; x <= width; x++)
+        {
+            mesh_vertices.push_back(Vector3d(x * tileWidth - middleOfGrid, 0.0, z * tileWidth - middleOfGrid));
+        }
+    }
+
+    for(int z = 0; z < width; z++)
+    {
+        for(int x = 0; x < width; x++)
+        {
+            int TopLeftEdge    = z * (stride) + x;
+            int TopRightEdge   = TopLeftEdge + 1;
+            int BottomLeftEdge = TopLeftEdge + (stride); 
+            int BottomRightEdge = BottomLeftEdge + 1; 
+            
+            Triangle triangle_one(TopLeftEdge, BottomLeftEdge, TopRightEdge);
+            Triangle triangle_two(TopRightEdge, BottomLeftEdge, BottomRightEdge);
+
+            this->mesh_triangles.push_back(triangle_one);
+            this->mesh_triangles.push_back(triangle_two);
+
+            Pixel color = ((x + z) % 2 == 0) ? CheckerBoardColorDark : CheckerBoardColorLight;
+
+            this->mesh_triangles_colors.push_back(color);
+            this->mesh_triangles_colors.push_back(color);
+
+        }
+    }
     return true;
 }

@@ -91,12 +91,12 @@ display::paintPixel(double x0, double y0, double z0,
     int TopMostY    = std::max({y0, y1, y2});
 
     if(LeftMostX < 0) LeftMostX = 0;
-    if(RightMostX > this->Width) RightMostX = this->Width - 1;
+    if(RightMostX >= this->Width) RightMostX = this->Width - 1;
 
     if(BottomMostY < 0) BottomMostY = 0;
-    if(TopMostY > this->Height) TopMostY = this->Height - 1;
+    if(TopMostY >= this->Height) TopMostY = this->Height - 1;
 
-    if(LeftMostX < 0 || RightMostX > Width - 1 || BottomMostY < 0 || TopMostY > Height - 1) return;
+    //if(LeftMostX < 0 || RightMostX > Width - 1 || BottomMostY < 0 || TopMostY > Height - 1) return;
 
     for(int y = BottomMostY; y <= TopMostY; y++)
     {

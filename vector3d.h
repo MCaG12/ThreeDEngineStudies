@@ -70,7 +70,7 @@ Vector3d<type>::operator-=(const Vector3d<type>& otherVector)
 {
     for (int i = 0; i < 3; i++)
     {
-        int result = this->Vec[i] - otherVector.getVectorIndex(i);
+        double result = this->Vec[i] - otherVector.getVectorIndex(i);
         this->Vec[i] = result;
     }
     return (*this);
@@ -190,8 +190,8 @@ Vector3d<type>::crossProduct(const Vector3d<type>& otherVector)
 {
     return Vector3d<type>
     ( (this->Vec[1] * otherVector.Vec[2]) - (this->Vec[2] * otherVector.Vec[1]),
-      (this->Vec[0] * otherVector.Vec[2]) - (this->Vec[2] * otherVector.Vec[0]),
-      (this->Vec[0] * otherVector.Vec[1]) - (this->Vec[1] * otherVector.Vec[0]) );
+    (this->Vec[2] * otherVector.Vec[0]) - (this->Vec[0] * otherVector.Vec[2]),
+    (this->Vec[0] * otherVector.Vec[1]) - (this->Vec[1] * otherVector.Vec[0]) );
 }
 
 template<class type>
